@@ -27,6 +27,7 @@ interface
       procedure ReadLineReadsBlankLinesWithCRLF;
       procedure ReadLineReadsMultipleLinesWithCR;
       procedure ReadLineReadsMultipleLinesWithCRLF;
+      procedure EOFIsFalseForProtectedMethodsWhenPreviousCharIsCachedAfterMoveBackAtTheEndOfStream;
       procedure EOFIsFalseWhenPreviousCharIsCachedAfterMoveBackAtTheEndOfStream;
     end;
 
@@ -36,10 +37,31 @@ implementation
 
   uses
     Deltics.Strings,
-    Deltics.io.Text;
+    Deltics.IO.Text;
 
 
 { UtfReader }
+
+  type TProtectedReader = class(TUtf8Reader);
+
+
+  procedure Utf8Reader.EOFIsFalseForProtectedMethodsWhenPreviousCharIsCachedAfterMoveBackAtTheEndOfStream;
+  var
+    src: Utf8String;
+    sut: TProtectedReader;
+  begin
+    src := 'Test';
+
+    sut := TProtectedReader.Create(src);
+    sut.Skip(4);
+
+    Test('EOF').Assert(sut.EOF).IsTrue;
+
+    sut.MoveBack;
+
+    Test('EOF').Assert(sut.EOF).IsFALSE;
+  end;
+
 
   procedure Utf8Reader.EOFIsFalseWhenPreviousCharIsCachedAfterMoveBackAtTheEndOfStream;
   var
